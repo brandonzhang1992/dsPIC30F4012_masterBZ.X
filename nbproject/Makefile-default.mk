@@ -45,17 +45,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=main_4012_masterBZ.c "../../../../../Program Files (x86)/Microchip/xc16/v1.24/support/dsPIC30F/h/can-dspic30.c"
+SOURCEFILES_QUOTED_IF_SPACED=main_4012_masterBZ.c
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/main_4012_masterBZ.o ${OBJECTDIR}/_ext/1436976391/can-dspic30.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/main_4012_masterBZ.o.d ${OBJECTDIR}/_ext/1436976391/can-dspic30.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/main_4012_masterBZ.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/main_4012_masterBZ.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/main_4012_masterBZ.o ${OBJECTDIR}/_ext/1436976391/can-dspic30.o
+OBJECTFILES=${OBJECTDIR}/main_4012_masterBZ.o
 
 # Source Files
-SOURCEFILES=main_4012_masterBZ.c ../../../../../Program Files (x86)/Microchip/xc16/v1.24/support/dsPIC30F/h/can-dspic30.c
+SOURCEFILES=main_4012_masterBZ.c
 
 
 CFLAGS=
@@ -89,13 +89,6 @@ ${OBJECTDIR}/main_4012_masterBZ.o: main_4012_masterBZ.c  nbproject/Makefile-${CN
 	${MP_CC} $(MP_EXTRA_CC_PRE)  main_4012_masterBZ.c  -o ${OBJECTDIR}/main_4012_masterBZ.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/main_4012_masterBZ.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/main_4012_masterBZ.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
-${OBJECTDIR}/_ext/1436976391/can-dspic30.o: ../../../../../Program\ Files\ \(x86\)/Microchip/xc16/v1.24/support/dsPIC30F/h/can-dspic30.c  nbproject/Makefile-${CND_CONF}.mk
-	@${MKDIR} "${OBJECTDIR}/_ext/1436976391" 
-	@${RM} ${OBJECTDIR}/_ext/1436976391/can-dspic30.o.d 
-	@${RM} ${OBJECTDIR}/_ext/1436976391/can-dspic30.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  "../../../../../Program Files (x86)/Microchip/xc16/v1.24/support/dsPIC30F/h/can-dspic30.c"  -o ${OBJECTDIR}/_ext/1436976391/can-dspic30.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/1436976391/can-dspic30.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1    -omf=elf -O0 -msmart-io=1 -Wall -msfr-warn=off
-	@${FIXDEPS} "${OBJECTDIR}/_ext/1436976391/can-dspic30.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
-	
 else
 ${OBJECTDIR}/main_4012_masterBZ.o: main_4012_masterBZ.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} "${OBJECTDIR}" 
@@ -103,13 +96,6 @@ ${OBJECTDIR}/main_4012_masterBZ.o: main_4012_masterBZ.c  nbproject/Makefile-${CN
 	@${RM} ${OBJECTDIR}/main_4012_masterBZ.o 
 	${MP_CC} $(MP_EXTRA_CC_PRE)  main_4012_masterBZ.c  -o ${OBJECTDIR}/main_4012_masterBZ.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/main_4012_masterBZ.o.d"        -g -omf=elf -O0 -msmart-io=1 -Wall -msfr-warn=off
 	@${FIXDEPS} "${OBJECTDIR}/main_4012_masterBZ.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
-	
-${OBJECTDIR}/_ext/1436976391/can-dspic30.o: ../../../../../Program\ Files\ \(x86\)/Microchip/xc16/v1.24/support/dsPIC30F/h/can-dspic30.c  nbproject/Makefile-${CND_CONF}.mk
-	@${MKDIR} "${OBJECTDIR}/_ext/1436976391" 
-	@${RM} ${OBJECTDIR}/_ext/1436976391/can-dspic30.o.d 
-	@${RM} ${OBJECTDIR}/_ext/1436976391/can-dspic30.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  "../../../../../Program Files (x86)/Microchip/xc16/v1.24/support/dsPIC30F/h/can-dspic30.c"  -o ${OBJECTDIR}/_ext/1436976391/can-dspic30.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/_ext/1436976391/can-dspic30.o.d"        -g -omf=elf -O0 -msmart-io=1 -Wall -msfr-warn=off
-	@${FIXDEPS} "${OBJECTDIR}/_ext/1436976391/can-dspic30.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 endif
 
