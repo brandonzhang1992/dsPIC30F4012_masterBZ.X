@@ -463,33 +463,27 @@ void InitPid(pid_t *p, float kp, float kd, float ki, float T, unsigned short N, 
     p->elast = el;
 }
 
-void CalcPid(pid_t *mypid) {
+void CalcPid(pid_t *mypid)
+{
     volatile float pidOutDutyCycle;
-    volatile int target = (int) targetPos;
-    volatile int motorPos = (int) POSCNT;
+    volatile int target = InData0[0];//(int)targetPos;
+    volatile int motorPos = (int)POSCNT;
     volatile float error = 0.0;
 
-    //    mypid->y = degMTR;
-    error = (float) (target - motorPos);
+    error = (float)(target - motorPos);
 
-    //    mypid->i = mypid->e+mypid->elast; // accumulated error
-    //    mypid->d = mypid->e-mypid->elast; // difference in error
-    mypid->u = mypid->Kp*error; //+mypid->Kd*mypid->d+mypid->Ki*mypid->i;
+    pidOutDutyCycle = (mypid->Kp*error);
 
-    pidOutDutyCycle = (float) (mypid->u * 0.1);
+    if (pidOutDutyCycle >= 997.0) pidOutDutyCycle = 997.0;
+    if (pidOutDutyCycle <= -997.0) pidOutDutyCycle = -997.0;
 
-    if (pidOutDutyCycle >= 998.0) {
-        pwmOUT[CW] = 997;
-        pwmOUT[CCW] = 0;
-    } else if (pidOutDutyCycle <= -998.0) {
-        pwmOUT[CW] = 0;
-        pwmOUT[CCW] = 997;
-    } else if (pidOutDutyCycle < 0) {
-        pwmOUT[CW] = 0;
-        pwmOUT[CCW] = (unsigned int) ((-1.0) * pidOutDutyCycle);
-    } else {
-        pwmOUT[CW] = (unsigned int) (pidOutDutyCycle);
-        pwmOUT[CCW] = 0;
+    if (pidOutDutyCycle < 0.0){
+        PDC1 = (unsigned int)((-0.05)*(pidOutDutyCycle));
+        PDC2  = 0;
+    }
+    else {
+        PDC1 = 0;
+        PDC2  = (unsigned int)(0.05)*(pidOutDutyCycle);
     }
     return;
 }
@@ -509,9 +503,9 @@ int main() {
     //    InitInt();
     //    InitAdc();
     InitQEI();
-    //    InitPwm();
+    InitPwm();
     //    InitUart();
-    //    InitTmr1();
+    InitTmr1();
 
     TRISRED = 0; // PORTE output
     TRISYLW = 0; // PORTE output
@@ -528,31 +522,35 @@ int main() {
     //                ADCON1bits.ADON = 1; // A/D converter module on
 
     //                // Enable PWM Module
-    //                PTCONbits.PTEN = 1;
+                    PTCONbits.PTEN = 1;
 
-    //                // Initialize PID
-    //                InitPid(&mypid, PID_KP, PID_KD, PID_KI, PID_TS, PID_N, 0, 0, 0, 0);
+    // Initialize PID
+    InitPid(&mypid, PID_KP, PID_KD, PID_KI, PID_TS, PID_N, 0, 0, 0, 0);
 
     // Enable CAN module
     C1CTRLbits.REQOP = NORMAL;
     while (C1CTRLbits.OPMODE != NORMAL);
 
     //                // Turn on timer 1
-    //                T1CONbits.TON = 1;
+                    T1CONbits.TON = 1;
    
 
 
     while (1) {
 
    
-    msDelay(2);
+            msDelay(2);
 //    if (InData0[3] == 1) {
 //            C1TX0B4 = 2;
             C1TX0B1 = POSCNT;
-//            C1TX0B2 = C1RX0B2;
-//            C1TX0B3 = C1RX0B3;
+            C1TX0B4 = InData0[1] - POSCNT;
             C1TX0CONbits.TXREQ = 1;
             while (C1TX0CONbits.TXREQ != 0);
+        
+
+
+            
+
 //        }
 
 
@@ -640,10 +638,46 @@ void __attribute__((interrupt, no_auto_psv)) _C1Interrupt(void) {
 //    IFS0bits.U1RXIF = 0; // Clear U1RX interrupt
 //}
 //
-//void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void)
-//{
-//    IFS0bits.T1IF = 0;   // Clear timer 1 interrupt flag
-////    LEDRED = 1;
-//    CalcPid(&mypid);
-////    LEDRED = 0;
-//}
+void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void)
+{
+    IFS0bits.T1IF = 0; // Clear timer 1 interrupt flag
+    volatile float error = 0.0;
+////     if (InData0[1] != POSCNT){
+////         LEDGRN = 1;
+////     }
+////     else{
+////         LEDGRN = 0;
+////     }
+    
+//     if(InData0[2] >= 5){
+         if(InData0[1] > POSCNT){
+             error = (float)(InData0[1] - POSCNT);
+             PDC1 = (unsigned int)(error);
+             PDC2 = 0;
+             LEDGRN = 0;
+             LEDRED = 1;
+         }
+         else if(InData0[1] < POSCNT){
+            error = (float)(POSCNT - InData0[1]);
+            LEDGRN = 1;
+            LEDRED = 0;
+            PDC1 = 0;
+            PDC2 = (unsigned int)(error) ;
+         }
+         else{
+             PDC1 = 0;
+             PDC2 = 0;
+             LEDRED = 0;
+             LEDGRN = 0;
+         }
+//            CalcPid(&mypid);
+////                LEDRED = 0;
+//         }
+//
+//        else if(InData0[2] <= 2){
+//          LEDRED = 0;
+//          LEDGRN = 0;
+//          PDC1 = 0;
+//          PDC2 = 0;
+//      }
+}
