@@ -121,7 +121,7 @@ pid_t mypid;
 
 
 // Misc. variables
-unsigned int InData0[4] = {0, 0, 0, 0};
+unsigned int InData0[4] = {0, 30000, 0, 0};
 unsigned int InData1[4] = {0, 0, 0, 0};
 unsigned int motorState = INITIALIZE;
 unsigned int ADCValue0, ADCValue1 = 0;
@@ -262,7 +262,7 @@ void InitCan(void) {
     C1CTRLbits.CSIDL = 0; // 0 = Continue CAN module op in idle mode
     C1CTRLbits.CANCKS = 0; // 1: Fcan=Fcy 0: Fcan=4Fcy
     C1CFG1bits.SJW = 0; // Synchronized jump width is 1xTq
-    C1CFG1bits.BRP = 8; // Baud rate prescaler = 20 (CAN baud rate of 100kHz
+    C1CFG1bits.BRP = 1; // Baud rate prescaler = 20 (CAN baud rate of 100kHz
     C1CFG2bits.SEG2PHTS = 1; // 1=Freely Programmable 0=Maximum of SEG1PH or 3Tq's whichever is greater
     C1CFG2bits.PRSEG = 1; // Propagation Segment = 2Tq
     C1CFG2bits.SEG1PH = 6; // Phase Buffer Segment 1 = 7Tq
@@ -367,7 +367,7 @@ void InitQEI(void) {
     DFLTCONbits.QECK = 2; // 1:4 clock divide for digital filter for QEn
     // FILTER_DIV = (MIPS*FILTERED_PULSE)/3
     //  ==> 5MHz*5usec/3 = 3.33 --> 2
-    POSCNT = 12000; // Reset position counter
+    POSCNT = 30000; // Reset position counter
     MAXCNT = 0xFFFF; // 65,535
     QEICONbits.QEIM = 7; // X4 mode with position counter reset by
     // 6 - index pulse
@@ -429,11 +429,26 @@ void InitTmr1(void) {
     T1CONbits.TGATE = 0; // Gated timer accumulation disabled
     T1CONbits.TCS = 0; // Use Tcy as source clock
     T1CONbits.TCKPS = 0; // Tcy/1 as input clock
-    PR1 = 5000; // Interrupt period = 10ms
+    PR1 = 5000; // Interrupt period = 10ms (5000 = 500hz)
     IFS0bits.T1IF = 0; // Clear timer 1 interrupt flag
     IEC0bits.T1IE = 1; // Enable timer 1 interrupts
     IPC0bits.T1IP = 7; // Enable timer 1 interrupts
     return;
+}
+
+void InitTmr2(void)
+{
+   TMR2 = 0;                // Reset timer counter
+   T2CONbits.TON = 0;       // Turn off timer 2
+   T2CONbits.TSIDL = 0;     // Continue operation during sleep
+   T2CONbits.TGATE = 0;     // Gated timer accumulation disabled
+   T2CONbits.TCS = 0;       // Use Tcy as source clock
+   T2CONbits.TCKPS = 0;     // Tcy/1 as input clock
+   PR2 = 10000;              // Interrupt period = 10ms
+   IFS0bits.T2IF = 0;       // Clear timer 2 interrupt flag
+   IEC0bits.T2IE = 1;       // Enable timer 2 interrupts
+   IPC1bits.T2IP = 7;       // Enable timer 2 interrupts
+   return;
 }
 
 void msDelay(unsigned int mseconds) //For counting time in ms
@@ -506,6 +521,7 @@ int main() {
     InitPwm();
     //    InitUart();
     InitTmr1();
+    InitTmr2();
 
     TRISRED = 0; // PORTE output
     TRISYLW = 0; // PORTE output
@@ -514,14 +530,14 @@ int main() {
     //INITIALIZE:
 
     // Initialization to offset POSCNT to three turns (12000 counts)
-    POSCNT = 12000; // This prevents under and overflow of the POSCNT register
+    POSCNT = 30000; // This prevents under and overflow of the POSCNT register
     //                ADCBUF0 = 0;
     //                ADCValue0 = 0;
     //
     //                // Enable ADC Module
     //                ADCON1bits.ADON = 1; // A/D converter module on
 
-    //                // Enable PWM Module
+                    // Enable PWM Module
                     PTCONbits.PTEN = 1;
 
     // Initialize PID
@@ -531,22 +547,19 @@ int main() {
     C1CTRLbits.REQOP = NORMAL;
     while (C1CTRLbits.OPMODE != NORMAL);
 
-    //                // Turn on timer 1
-                    T1CONbits.TON = 1;
+    // Turn on timer 1
+    T1CONbits.TON = 1;
+     // Turn on timer 2
+    T2CONbits.TON = 1;
    
-
 
     while (1) {
 
    
-            msDelay(2);
+//            msDelay(2);
 //    if (InData0[3] == 1) {
 //            C1TX0B4 = 2;
-            C1TX0B1 = POSCNT;
-            C1TX0B4 = InData0[1] - POSCNT;
-            C1TX0CONbits.TXREQ = 1;
-            while (C1TX0CONbits.TXREQ != 0);
-        
+            
 
 
             
@@ -650,26 +663,24 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void)
 ////     }
     
 //     if(InData0[2] >= 5){
-         if(InData0[1] > POSCNT){
-             error = (float)(InData0[1] - POSCNT);
-             PDC1 = (unsigned int)(error);
-             PDC2 = 0;
-             LEDGRN = 0;
-             LEDRED = 1;
-         }
-         else if(InData0[1] < POSCNT){
-            error = (float)(POSCNT - InData0[1]);
-            LEDGRN = 1;
-            LEDRED = 0;
-            PDC1 = 0;
-            PDC2 = (unsigned int)(error) ;
-         }
-         else{
-             PDC1 = 0;
-             PDC2 = 0;
-             LEDRED = 0;
-             LEDGRN = 0;
-         }
+    if (InData0[1] > POSCNT) {
+        error = (float) (InData0[1] - POSCNT);
+        PDC1 = (unsigned int) ((1.0)*(error));
+        PDC2 = 0;
+        LEDGRN = 0;
+        LEDRED = 1;
+    } else if (InData0[1] < POSCNT) {
+        error = (float) (POSCNT - InData0[1]);
+        LEDGRN = 1;
+        LEDRED = 0;
+        PDC1 = 0;
+        PDC2 = (unsigned int) (1.0)*(error);
+    } else {
+        PDC1 = 0;
+        PDC2 = 0;
+        LEDRED = 0;
+        LEDGRN = 0;
+    }
 //            CalcPid(&mypid);
 ////                LEDRED = 0;
 //         }
@@ -680,4 +691,14 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void)
 //          PDC1 = 0;
 //          PDC2 = 0;
 //      }
+}
+
+void __attribute__((interrupt, no_auto_psv)) _T2Interrupt(void)
+{
+    IFS0bits.T2IF = 0; // Clear timer 1 interrupt flag
+    C1TX0B1 = POSCNT;
+    C1TX0B4 = 1;
+    C1TX0CONbits.TXREQ = 1;
+    while (C1TX0CONbits.TXREQ != 0);
+
 }

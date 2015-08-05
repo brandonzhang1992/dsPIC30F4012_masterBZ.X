@@ -101,18 +101,18 @@ Program Memory  [Origin = 0x100, Length = 0x7f00]
 section                    address   length (PC units)   length (bytes) (dec)
 -------                    -------   -----------------   --------------------
 .text                        0x100               0x2a8           0x3fc  (1020)
-.text                        0x3a8               0x50c           0x792  (1938)
-.dinit                       0x8b4                0x12            0x1b  (27)
+.text                        0x3a8               0x51c           0x7aa  (1962)
+.dinit                       0x8c4                0x16            0x21  (33)
 
-                     Total program memory used (bytes):          0xba9  (2985) 6%
+                     Total program memory used (bytes):          0xbc7  (3015) 6%
 
 
 Data Memory  [Origin = 0x800, Length = 0x800]
 
 section                    address      alignment gaps    total length  (dec)
 -------                    -------      --------------    -------------------
-.nbss                        0x800                   0            0x60  (96)
-.ndata                       0x860                   0             0x4  (4)
+.nbss                        0x800                   0            0x58  (88)
+.ndata                       0x858                   0             0xc  (12)
 
                         Total data memory used (bytes):           0x64  (100) 4%
 
@@ -130,33 +130,33 @@ stack                        0x864                               0x79c  (1948)
 External Symbols in Data Memory (by address):
 
                     0x0800                  _mypid
-                    0x0836                  _InData0
-                    0x083e                  _InData1
-                    0x0846                  _ADCValue0
-                    0x0848                  _ADCValue1
-                    0x084a                  _pwmOUT
-                    0x084e                  _motorDirection
-                    0x0850                  _ADCvaluebuffer
-                    0x085a                  _adcbufferindex
-                    0x085c                  _ADCsum
-                    0x085e                  _fullflag
+                    0x0836                  _InData1
+                    0x083e                  _ADCValue0
+                    0x0840                  _ADCValue1
+                    0x0842                  _pwmOUT
+                    0x0846                  _motorDirection
+                    0x0848                  _ADCvaluebuffer
+                    0x0852                  _adcbufferindex
+                    0x0854                  _ADCsum
+                    0x0856                  _fullflag
+                    0x0858                  _InData0
                     0x0860                  _motorState
                     0x0862                  _targetPos
 
 External Symbols in Data Memory (by name):
 
-                    0x0846                  _ADCValue0
-                    0x0848                  _ADCValue1
-                    0x085c                  _ADCsum
-                    0x0850                  _ADCvaluebuffer
-                    0x0836                  _InData0
-                    0x083e                  _InData1
-                    0x085a                  _adcbufferindex
-                    0x085e                  _fullflag
-                    0x084e                  _motorDirection
+                    0x083e                  _ADCValue0
+                    0x0840                  _ADCValue1
+                    0x0854                  _ADCsum
+                    0x0848                  _ADCvaluebuffer
+                    0x0858                  _InData0
+                    0x0836                  _InData1
+                    0x0852                  _adcbufferindex
+                    0x0856                  _fullflag
+                    0x0846                  _motorDirection
                     0x0860                  _motorState
                     0x0800                  _mypid
-                    0x084a                  _pwmOUT
+                    0x0842                  _pwmOUT
                     0x0862                  _targetPos
 
 External Symbols in Program Memory (by address):
@@ -167,10 +167,10 @@ External Symbols in Program Memory (by address):
                   0x00013c                  __data_init
                   0x00019a                  __DefaultInterrupt
                   0x00019e                  ___eqsf2
-                  0x00019e                  ___lesf2
                   0x00019e                  ___ltsf2
-                  0x0001a2                  ___gesf2
+                  0x00019e                  ___lesf2
                   0x0001a2                  ___gtsf2
+                  0x0001a2                  ___gesf2
                   0x0001a6                  ___fixunssfsi
                   0x0001dc                  ___floatsisf
                   0x0001e2                  ___floatunsisf
@@ -191,31 +191,35 @@ External Symbols in Program Memory (by address):
                   0x000510                  _InitPwm
                   0x000544                  _InitUart
                   0x000590                  _InitTmr1
-                  0x0005bc                  _msDelay
-                  0x0005e4                  _InitPid
-                  0x00064e                  _CalcPid
-                  0x000714                  _UpdatePid
-                  0x000740                  _main
-                  0x0007c8                  __C1Interrupt
-                  0x000802                  __T1Interrupt
+                  0x0005bc                  _InitTmr2
+                  0x0005e8                  _msDelay
+                  0x000610                  _InitPid
+                  0x00067a                  _CalcPid
+                  0x000740                  _UpdatePid
+                  0x00076c                  _main
+                  0x0007da                  __C1Interrupt
+                  0x000814                  __T1Interrupt
+                  0x0008a4                  __T2Interrupt
                   0xf8000a                  __FGS.sec
 
 External Symbols in Program Memory (by name):
 
-                  0x00064e                  _CalcPid
+                  0x00067a                  _CalcPid
                   0x000452                  _InitAdc
                   0x0003a8                  _InitCan
                   0x000436                  _InitInt
-                  0x0005e4                  _InitPid
+                  0x000610                  _InitPid
                   0x000510                  _InitPwm
                   0x0004cc                  _InitQEI
                   0x000590                  _InitTmr1
+                  0x0005bc                  _InitTmr2
                   0x000544                  _InitUart
-                  0x000714                  _UpdatePid
-                  0x0007c8                  __C1Interrupt
+                  0x000740                  _UpdatePid
+                  0x0007da                  __C1Interrupt
                   0x00019a                  __DefaultInterrupt
                   0xf8000a                  __FGS.sec
-                  0x000802                  __T1Interrupt
+                  0x000814                  __T1Interrupt
+                  0x0008a4                  __T2Interrupt
                   0x00019e                  ___eqsf2
                   0x0001a6                  ___fixunssfsi
                   0x0002ae                  ___floatdisf
@@ -238,8 +242,8 @@ External Symbols in Program Memory (by name):
                   0x000378                  __funpack2
                   0x00012c                  __psv_init
                   0x000100                  __resetPRI
-                  0x000740                  _main
-                  0x0005bc                  _msDelay
+                  0x00076c                  _main
+                  0x0005e8                  _msDelay
 
 Memory Configuration
 
@@ -405,26 +409,26 @@ userdata
 .comment
  *(.comment)
 
-.debug_info       0x000000       0x3135
+.debug_info       0x000000       0x3477
  *(.debug_info)
- .debug_info      0x000000       0x3135 build/default/production/main_4012_masterBZ.o
+ .debug_info      0x000000       0x3477 build/default/production/main_4012_masterBZ.o
  *(.gnu.linkonce.wi.*)
 
 .debug_abbrev     0x000000        0x1bb
  *(.debug_abbrev)
  .debug_abbrev    0x000000        0x1bb build/default/production/main_4012_masterBZ.o
 
-.debug_line       0x000000        0x805
+.debug_line       0x000000        0x867
  *(.debug_line)
- .debug_line      0x000000        0x805 build/default/production/main_4012_masterBZ.o
+ .debug_line      0x000000        0x867 build/default/production/main_4012_masterBZ.o
 
-.debug_frame      0x000000        0x12c
+.debug_frame      0x000000        0x148
  *(.debug_frame)
- .debug_frame     0x000000        0x12c build/default/production/main_4012_masterBZ.o
+ .debug_frame     0x000000        0x148 build/default/production/main_4012_masterBZ.o
 
-.debug_str        0x000000        0x14e
+.debug_str        0x000000        0x161
  *(.debug_str)
- .debug_str       0x000000        0x14e build/default/production/main_4012_masterBZ.o
+ .debug_str       0x000000        0x161 build/default/production/main_4012_masterBZ.o
 
 .debug_loc
  *(.debug_loc)
@@ -433,10 +437,10 @@ userdata
  *(.debug_macinfo)
 
 .debug_pubnames
-                  0x000000        0x17c
+                  0x000000        0x19a
  *(.debug_pubnames)
  .debug_pubnames
-                  0x000000        0x17c build/default/production/main_4012_masterBZ.o
+                  0x000000        0x19a build/default/production/main_4012_masterBZ.o
 
 .debug_ranges
  *(.debug_ranges)
@@ -458,10 +462,10 @@ userdata
                   0x000014          0x4 LONG 0x19a DEFINED (__INT0Interrupt)?ABSOLUTE (__INT0Interrupt):ABSOLUTE (__DefaultInterrupt)
                   0x000016          0x4 LONG 0x19a DEFINED (__IC1Interrupt)?ABSOLUTE (__IC1Interrupt):ABSOLUTE (__DefaultInterrupt)
                   0x000018          0x4 LONG 0x19a DEFINED (__OC1Interrupt)?ABSOLUTE (__OC1Interrupt):ABSOLUTE (__DefaultInterrupt)
-                  0x00001a          0x4 LONG 0x802 DEFINED (__T1Interrupt)?ABSOLUTE (__T1Interrupt):ABSOLUTE (__DefaultInterrupt)
+                  0x00001a          0x4 LONG 0x814 DEFINED (__T1Interrupt)?ABSOLUTE (__T1Interrupt):ABSOLUTE (__DefaultInterrupt)
                   0x00001c          0x4 LONG 0x19a DEFINED (__IC2Interrupt)?ABSOLUTE (__IC2Interrupt):ABSOLUTE (__DefaultInterrupt)
                   0x00001e          0x4 LONG 0x19a DEFINED (__OC2Interrupt)?ABSOLUTE (__OC2Interrupt):ABSOLUTE (__DefaultInterrupt)
-                  0x000020          0x4 LONG 0x19a DEFINED (__T2Interrupt)?ABSOLUTE (__T2Interrupt):ABSOLUTE (__DefaultInterrupt)
+                  0x000020          0x4 LONG 0x8a4 DEFINED (__T2Interrupt)?ABSOLUTE (__T2Interrupt):ABSOLUTE (__DefaultInterrupt)
                   0x000022          0x4 LONG 0x19a DEFINED (__T3Interrupt)?ABSOLUTE (__T3Interrupt):ABSOLUTE (__DefaultInterrupt)
                   0x000024          0x4 LONG 0x19a DEFINED (__SPI1Interrupt)?ABSOLUTE (__SPI1Interrupt):ABSOLUTE (__DefaultInterrupt)
                   0x000026          0x4 LONG 0x19a DEFINED (__U1RXInterrupt)?ABSOLUTE (__U1RXInterrupt):ABSOLUTE (__DefaultInterrupt)
@@ -482,7 +486,7 @@ userdata
                   0x000044          0x4 LONG 0x19a DEFINED (__U2RXInterrupt)?ABSOLUTE (__U2RXInterrupt):ABSOLUTE (__DefaultInterrupt)
                   0x000046          0x4 LONG 0x19a DEFINED (__U2TXInterrupt)?ABSOLUTE (__U2TXInterrupt):ABSOLUTE (__DefaultInterrupt)
                   0x000048          0x4 LONG 0x19a DEFINED (__SPI2Interrupt)?ABSOLUTE (__SPI2Interrupt):ABSOLUTE (__DefaultInterrupt)
-                  0x00004a          0x4 LONG 0x7c8 DEFINED (__C1Interrupt)?ABSOLUTE (__C1Interrupt):ABSOLUTE (__DefaultInterrupt)
+                  0x00004a          0x4 LONG 0x7da DEFINED (__C1Interrupt)?ABSOLUTE (__C1Interrupt):ABSOLUTE (__DefaultInterrupt)
                   0x00004c          0x4 LONG 0x19a DEFINED (__IC3Interrupt)?ABSOLUTE (__IC3Interrupt):ABSOLUTE (__DefaultInterrupt)
                   0x00004e          0x4 LONG 0x19a DEFINED (__IC4Interrupt)?ABSOLUTE (__IC4Interrupt):ABSOLUTE (__DefaultInterrupt)
                   0x000050          0x4 LONG 0x19a DEFINED (__IC5Interrupt)?ABSOLUTE (__IC5Interrupt):ABSOLUTE (__DefaultInterrupt)
@@ -522,10 +526,10 @@ userdata
                   0x000094          0x4 LONG 0x19a DEFINED (__AltINT0Interrupt)?ABSOLUTE (__AltINT0Interrupt):DEFINED (__INT0Interrupt)?ABSOLUTE (__INT0Interrupt):ABSOLUTE (__DefaultInterrupt)
                   0x000096          0x4 LONG 0x19a DEFINED (__AltIC1Interrupt)?ABSOLUTE (__AltIC1Interrupt):DEFINED (__IC1Interrupt)?ABSOLUTE (__IC1Interrupt):ABSOLUTE (__DefaultInterrupt)
                   0x000098          0x4 LONG 0x19a DEFINED (__AltOC1Interrupt)?ABSOLUTE (__AltOC1Interrupt):DEFINED (__OC1Interrupt)?ABSOLUTE (__OC1Interrupt):ABSOLUTE (__DefaultInterrupt)
-                  0x00009a          0x4 LONG 0x802 DEFINED (__AltT1Interrupt)?ABSOLUTE (__AltT1Interrupt):DEFINED (__T1Interrupt)?ABSOLUTE (__T1Interrupt):ABSOLUTE (__DefaultInterrupt)
+                  0x00009a          0x4 LONG 0x814 DEFINED (__AltT1Interrupt)?ABSOLUTE (__AltT1Interrupt):DEFINED (__T1Interrupt)?ABSOLUTE (__T1Interrupt):ABSOLUTE (__DefaultInterrupt)
                   0x00009c          0x4 LONG 0x19a DEFINED (__AltIC2Interrupt)?ABSOLUTE (__AltIC2Interrupt):DEFINED (__IC2Interrupt)?ABSOLUTE (__IC2Interrupt):ABSOLUTE (__DefaultInterrupt)
                   0x00009e          0x4 LONG 0x19a DEFINED (__AltOC2Interrupt)?ABSOLUTE (__AltOC2Interrupt):DEFINED (__OC2Interrupt)?ABSOLUTE (__OC2Interrupt):ABSOLUTE (__DefaultInterrupt)
-                  0x0000a0          0x4 LONG 0x19a DEFINED (__AltT2Interrupt)?ABSOLUTE (__AltT2Interrupt):DEFINED (__T2Interrupt)?ABSOLUTE (__T2Interrupt):ABSOLUTE (__DefaultInterrupt)
+                  0x0000a0          0x4 LONG 0x8a4 DEFINED (__AltT2Interrupt)?ABSOLUTE (__AltT2Interrupt):DEFINED (__T2Interrupt)?ABSOLUTE (__T2Interrupt):ABSOLUTE (__DefaultInterrupt)
                   0x0000a2          0x4 LONG 0x19a DEFINED (__AltT3Interrupt)?ABSOLUTE (__AltT3Interrupt):DEFINED (__T3Interrupt)?ABSOLUTE (__T3Interrupt):ABSOLUTE (__DefaultInterrupt)
                   0x0000a4          0x4 LONG 0x19a DEFINED (__AltSPI1Interrupt)?ABSOLUTE (__AltSPI1Interrupt):DEFINED (__SPI1Interrupt)?ABSOLUTE (__SPI1Interrupt):ABSOLUTE (__DefaultInterrupt)
                   0x0000a6          0x4 LONG 0x19a DEFINED (__AltU1RXInterrupt)?ABSOLUTE (__AltU1RXInterrupt):DEFINED (__U1RXInterrupt)?ABSOLUTE (__U1RXInterrupt):ABSOLUTE (__DefaultInterrupt)
@@ -546,7 +550,7 @@ userdata
                   0x0000c4          0x4 LONG 0x19a DEFINED (__AltU2RXInterrupt)?ABSOLUTE (__AltU2RXInterrupt):DEFINED (__U2RXInterrupt)?ABSOLUTE (__U2RXInterrupt):ABSOLUTE (__DefaultInterrupt)
                   0x0000c6          0x4 LONG 0x19a DEFINED (__AltU2TXInterrupt)?ABSOLUTE (__AltU2TXInterrupt):DEFINED (__U2TXInterrupt)?ABSOLUTE (__U2TXInterrupt):ABSOLUTE (__DefaultInterrupt)
                   0x0000c8          0x4 LONG 0x19a DEFINED (__AltSPI2Interrupt)?ABSOLUTE (__AltSPI2Interrupt):DEFINED (__SPI2Interrupt)?ABSOLUTE (__SPI2Interrupt):ABSOLUTE (__DefaultInterrupt)
-                  0x0000ca          0x4 LONG 0x7c8 DEFINED (__AltC1Interrupt)?ABSOLUTE (__AltC1Interrupt):DEFINED (__C1Interrupt)?ABSOLUTE (__C1Interrupt):ABSOLUTE (__DefaultInterrupt)
+                  0x0000ca          0x4 LONG 0x7da DEFINED (__AltC1Interrupt)?ABSOLUTE (__AltC1Interrupt):DEFINED (__C1Interrupt)?ABSOLUTE (__C1Interrupt):ABSOLUTE (__DefaultInterrupt)
                   0x0000cc          0x4 LONG 0x19a DEFINED (__AltIC3Interrupt)?ABSOLUTE (__AltIC3Interrupt):DEFINED (__IC3Interrupt)?ABSOLUTE (__IC3Interrupt):ABSOLUTE (__DefaultInterrupt)
                   0x0000ce          0x4 LONG 0x19a DEFINED (__AltIC4Interrupt)?ABSOLUTE (__AltIC4Interrupt):DEFINED (__IC4Interrupt)?ABSOLUTE (__IC4Interrupt):ABSOLUTE (__DefaultInterrupt)
                   0x0000d0          0x4 LONG 0x19a DEFINED (__AltIC5Interrupt)?ABSOLUTE (__AltIC5Interrupt):DEFINED (__IC5Interrupt)?ABSOLUTE (__IC5Interrupt):ABSOLUTE (__DefaultInterrupt)
@@ -1246,61 +1250,61 @@ LOAD default_isr
 LOAD data_init
 
 .debug_pubtypes
-                  0x000018        0x3a6
+                  0x000018        0x3e2
  .debug_pubtypes
-                  0x000018        0x3a6 build/default/production/main_4012_masterBZ.o
+                  0x000018        0x3e2 build/default/production/main_4012_masterBZ.o
 
 __c30_signature
-                  0x0003be         0x60
+                  0x0003fa         0x60
  __c30_signature
-                  0x0003be          0x6 build/default/production/main_4012_masterBZ.o
+                  0x0003fa          0x6 build/default/production/main_4012_masterBZ.o
  __c30_signature
-                  0x0003c4          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libpic30-elf.a(crt0_standard.o)
+                  0x000400          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libpic30-elf.a(crt0_standard.o)
  __c30_signature
-                  0x0003ca          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libpic30-elf.a(data_init_standard.o)
+                  0x000406          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libpic30-elf.a(data_init_standard.o)
  __c30_signature
-                  0x0003d0          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libm-elf.a(feqltle.eo)
+                  0x00040c          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libm-elf.a(feqltle.eo)
  __c30_signature
-                  0x0003d6          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libm-elf.a(fgtge.eo)
+                  0x000412          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libm-elf.a(fgtge.eo)
  __c30_signature
-                  0x0003dc          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libm-elf.a(fixunssfsi.eo)
+                  0x000418          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libm-elf.a(fixunssfsi.eo)
  __c30_signature
-                  0x0003e2          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libm-elf.a(floatsisf.eo)
+                  0x00041e          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libm-elf.a(floatsisf.eo)
  __c30_signature
-                  0x0003e8          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libm-elf.a(floatunsisf.eo)
+                  0x000424          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libm-elf.a(floatunsisf.eo)
  __c30_signature
-                  0x0003ee          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libm-elf.a(funpack.eo)
+                  0x00042a          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libm-elf.a(funpack.eo)
  __c30_signature
-                  0x0003f4          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libm-elf.a(mulsf3.eo)
+                  0x000430          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libm-elf.a(mulsf3.eo)
  __c30_signature
-                  0x0003fa          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libm-elf.a(fcompare.eo)
+                  0x000436          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libm-elf.a(fcompare.eo)
  __c30_signature
-                  0x000400          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libm-elf.a(floatdisf.eo)
+                  0x00043c          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libm-elf.a(floatdisf.eo)
  __c30_signature
-                  0x000406          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libm-elf.a(floatundisf.eo)
+                  0x000442          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libm-elf.a(floatundisf.eo)
  __c30_signature
-                  0x00040c          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libm-elf.a(fpack.eo)
+                  0x000448          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libm-elf.a(fpack.eo)
  __c30_signature
-                  0x000412          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libm-elf.a(funpack2.eo)
+                  0x00044e          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libm-elf.a(funpack2.eo)
  __c30_signature
-                  0x000418          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libm-elf.a(futil.eo)
+                  0x000454          0x6 c:/program files (x86)/microchip/xc16/v1.24/bin/bin/../../lib\libm-elf.a(futil.eo)
 
-.nbss               0x0800         0x60
- .nbss              0x0800         0x60 build/default/production/main_4012_masterBZ.o
+.nbss               0x0800         0x58
+ .nbss              0x0800         0x58 build/default/production/main_4012_masterBZ.o
                     0x0800                  _mypid
-                    0x0836                  _InData0
-                    0x083e                  _InData1
-                    0x0846                  _ADCValue0
-                    0x0848                  _ADCValue1
-                    0x084a                  _pwmOUT
-                    0x084e                  _motorDirection
-                    0x0850                  _ADCvaluebuffer
-                    0x085a                  _adcbufferindex
-                    0x085c                  _ADCsum
-                    0x085e                  _fullflag
+                    0x0836                  _InData1
+                    0x083e                  _ADCValue0
+                    0x0840                  _ADCValue1
+                    0x0842                  _pwmOUT
+                    0x0846                  _motorDirection
+                    0x0848                  _ADCvaluebuffer
+                    0x0852                  _adcbufferindex
+                    0x0854                  _ADCsum
+                    0x0856                  _fullflag
 
-.ndata              0x0860          0x4
- .ndata             0x0860          0x4 build/default/production/main_4012_masterBZ.o
+.ndata              0x0858          0xc
+ .ndata             0x0858          0xc build/default/production/main_4012_masterBZ.o
+                    0x0858                  _InData0
                     0x0860                  _motorState
                     0x0862                  _targetPos
 
@@ -1318,8 +1322,8 @@ __c30_signature
  .config_FCKSMEN
                   0xf80000          0x2 build/default/production/main_4012_masterBZ.o
 
-.text             0x0003a8        0x50c
- .text            0x0003a8        0x50c build/default/production/main_4012_masterBZ.o
+.text             0x0003a8        0x51c
+ .text            0x0003a8        0x51c build/default/production/main_4012_masterBZ.o
                   0x0003a8                  _InitCan
                   0x000436                  _InitInt
                   0x000452                  _InitAdc
@@ -1327,13 +1331,15 @@ __c30_signature
                   0x000510                  _InitPwm
                   0x000544                  _InitUart
                   0x000590                  _InitTmr1
-                  0x0005bc                  _msDelay
-                  0x0005e4                  _InitPid
-                  0x00064e                  _CalcPid
-                  0x000714                  _UpdatePid
-                  0x000740                  _main
-                  0x0007c8                  __C1Interrupt
-                  0x000802                  __T1Interrupt
+                  0x0005bc                  _InitTmr2
+                  0x0005e8                  _msDelay
+                  0x000610                  _InitPid
+                  0x00067a                  _CalcPid
+                  0x000740                  _UpdatePid
+                  0x00076c                  _main
+                  0x0007da                  __C1Interrupt
+                  0x000814                  __T1Interrupt
+                  0x0008a4                  __T2Interrupt
 
-.dinit            0x0008b4         0x12
- .dinit           0x0008b4         0x12 data_init
+.dinit            0x0008c4         0x16
+ .dinit           0x0008c4         0x16 data_init
