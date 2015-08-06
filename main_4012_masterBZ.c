@@ -1,6 +1,6 @@
 /*
- * File:   main.c
- * Author: PaoloDantes
+ * File:   main.c (Master Code)
+ * Author: PaoloDantes & BrandonZhang
  *
  * Created on April 17, 2015, 2:23 PM
  */
@@ -11,12 +11,6 @@
 #include "p30FXXXX.h"
 
 
-#define PIC_ID          1
-#define SEND_DATA       (PIC_ID-1)
-#define UPDATE_POSITION (PIC_ID-3)
-#define PIC_HAPTIC      (PIC_ID+3)
-#define SLAVE_INDATA    0//(PIC_ID-4)
-#define MASTER_INDATA   (PIC_ID-1)
 
 // IO definitions
 #define LEDRED  LATEbits.LATE3 // RED
@@ -27,21 +21,6 @@
 #define TRISGRN  TRISEbits.TRISE5 // GREEN
 #define UART_TX_LEN 50
 
-// Display commands for LMB162ABC
-#define CLEAR_DISPLAY       0x01 // Writes "20h" (ASCII for space
-#define RETURN_HOME         0X02
-#define ENTRY_MODE_SET      0x06 // No screen shifting, AC=AC+1
-#define DISPLAY_ON          0x0F // Display on, cursor on, cursor blinking on
-#define CURSOR_SHIFT        0x14 // Shift cursor to right side
-#define FUNCTION_SET        0x28 // 4-bit interface, 2-line display, 5x8 dots font
-#define SET_CGRAM_ADD       0x40 // OR this with AC0-AC5 CGRAM address
-#define SET_DDRAM_ADD       0x80 // OR this with AC0-AC6 DDRAM address
-
-// IO for 16x2 LCD
-#define RS      LATEbits.LATE0 // RED WIRE
-#define RW      LATEbits.LATE1 // BLUE WIRE
-#define EN      LATEbits.LATE2 // GREEN WIRE
-#define DATA    LATB
 
 // CAN Operation Modes
 #define CONFIG_MODE     4
@@ -52,7 +31,7 @@
 #define NORMAL          0
 
 // CAN bit timing
-#define FOSC        20000000 // 7.37MHz
+#define FOSC        20000000 // 20Mhz Crystal
 #define FCY         FOSC/4
 #define BITRATE     1000000  // 100kbps
 #define NTQ         16      // Amount of Tq per bit time
@@ -62,34 +41,15 @@
 #define UART_BAUD   115000
 #define UART_BRG    (FCY/(16*UART_BAUD))-1 // refer to pg. 506 of family reference
 
-// Define motorState state values
-#define INITIALIZE          100
-#define READ_INPUT_OUTPUT   101
-#define CALCULATE_PID       102
-#define UPDATE_PID          103
-#define IDLE                104
-#define SEND_HOME           105
-#define KP_PROGRAM          106
-#define KD_PROGRAM          107
-#define KI_PROGRAM          108
-#define HAPTIC              109
-
-// IDLE state machine
-#define HOME               10
-#define NEW_KP_CONST       11
-#define NEW_KD_CONST       12
-#define NEW_KI_CONST       13
 
 // Define PID controls
-#define PID_KP  1.0
+#define PID_KP  2.0
 #define PID_KD  0.1
 #define PID_KI  0
 #define PID_TI  0
 #define PID_TD  0
 #define PID_TS  10
 #define PID_N   10
-#define CW   0
-#define CCW  1
 
 // Define PWM constants
 #define PWM_FREQUENCY       16000
@@ -102,12 +62,7 @@
 #define PID_FCY             PID_FOSC/4.0
 #define PID_PWM_COUNTS_PERIOD   (FCY/PWM_FREQUENCY)-1.0
 
-//ADC
-#define INDEXSIZE 5
-#define indexsize 1/INDEXSIZE
-
 // pid_t type
-
 typedef struct {
     float Kp, Kd, Ki, T;
     unsigned short N; // derivative filter parameter (3-20)
@@ -121,75 +76,14 @@ pid_t mypid;
 
 
 // Misc. variables
-unsigned int InData0[4] = {0, 30000, 0, 0};
-unsigned int InData1[4] = {0, 0, 0, 0};
-unsigned int motorState = INITIALIZE;
-unsigned int ADCValue0, ADCValue1 = 0;
-unsigned int pwmOUT[2] = {0, 0};
-unsigned int targetPos = 12000;
-unsigned char motorDirection = 0;
-unsigned int ADCvaluebuffer[INDEXSIZE] = {0};
-unsigned int adcbufferindex = 0;
-unsigned int ADCsum = 0;
-unsigned char fullflag = 0;
 
-//void InitCan(void) {
-//    // Initializing CAN Module Control Register
-//    C1CTRLbits.REQOP = CONFIG_MODE; // 4 = Configuration mode
-//    C1CTRLbits.CANCAP = 1; // Enable CAN capture
-//    C1CTRLbits.CSIDL = 0; // 0 = Continue CAN module op in idle mode
-//    C1CTRLbits.CANCKS = 0; // 1: Fcan=Fcy 0: Fcan=4Fcy
-//    C1CFG1bits.SJW = 0; // Synchronized jump width is 1xTq
-//    C1CFG1bits.BRP = 8; // Baud rate prescaler = 20 (CAN baud rate of 100kHz
-//    C1CFG2bits.SEG2PHTS = 1; // 1=Freely Programmable 0=Maximum of SEG1PH or 3Tq's whichever is greater
-//    C1CFG2bits.PRSEG = 1; // Propagation Segment = 2Tq
-//    C1CFG2bits.SEG1PH = 6; // Phase Buffer Segment 1 = 7Tq
-//    C1CFG2bits.SEG2PH = 5; // Phase Buffer Segment 2 = 6Tq
-//    C1CFG2bits.SAM = 1; // 1=Bus line sampled 3 times 0=Bus line sampled once
-//
-//    // Initializing CAN interrupt
-//    C1INTF = 0; // Reset all CAN interrupts
-//    IFS1bits.C1IF = 0; // Reset Interrupt flag status register
-//    C1INTE = 0x00FF; // Enable all CAN interrupt sources
-//    IPC6bits.C1IP = 6; // CAN 1 Module interrupt is priority 6
-//    IEC1bits.C1IE = 1; // Enable CAN1 Interrupt
-//
-//    /*---------------------------------------------------------
-//     *  CONFIGURE RECEIVER REGISTERS, FILTERS AND MASKS
-//     *---------------------------------------------------------*/
-//
-//    // Configure CAN Module Receive Buffer Register
-//    C1RX0CONbits.DBEN = 0; // Buffer 0 does not overflow in buffer 1
-//    C1RX0CONbits.FILHIT = 0; // Buffer 0 = Acceptance filter 0
-//    C1RX1CONbits.FILHIT = 2; // Buffer 1 = Acceptance filter 2
-//
-//    // Initializing Acceptance Mask Register
-//    C1RXM0SID = 0x1FFD; // SID = 11111111111
-//    C1RXM1SID = 0x1FFD; // SID = 11111111111
-//
-//    // Initializing Message Acceptance filter
-//    C1RXF0SID = 0x0AA8; // SID = 01010101010
-//    C1RXF2SID = 0x1554; // SID = 10101010101
-//    C1RXF1SID = 0x0000; // SID = 00000000000
-//    C1RXF3SID = 0x0000; // SID = 00000000000
-//    C1RXF4SID = 0x0000; // SID = 00000000000
-//    C1RXF5SID = 0x0000; // SID = 00000000000
-//
-//    /*---------------------------------------------------------
-//     *  CONFIGURE RECEIVER REGISTERS, FILTERS AND MASKS
-//     *---------------------------------------------------------*/
-//
-//    // Configure CAN Module Transmit Buffer Register
-//    C1TX0CONbits.TXPRI = 1; // 1 = High message priority
-//    C1TX2CONbits.TXPRI = 2; // 2 = High intermediate message priority
-//
-//    // Initializing Transmit SID
-//    C1TX0SID = 0X50A8; // SID = 01010101010
-//    C1TX1SID = 0XA854; // SID = 10101010101
-//    C1TX0DLCbits.DLC = 8; // Data length is 8bytes
-//    C1TX1DLCbits.DLC = 8; // Data length is 8bytes
-//
-//}
+//InData0 initialization (InData0[0] = POSCNT(Master), InData0[1] = POSCNT(Slave))
+unsigned int InData0[4] = {0, 30000, 0, 0};  
+unsigned int targetPos = 30000; //Motor initial Target position
+
+/////////////////////////////////////////////////////////////
+/////       CAN BUS FILTER TESTING (DOESNT WORK)       //////
+/////////////////////////////////////////////////////////////
 
 //void InitCan(void) {
 //    // Initializing CAN Module Control Register
@@ -255,6 +149,8 @@ unsigned char fullflag = 0;
 //
 //}
 
+
+//CAN BUS initialization
 void InitCan(void) {
     // Initializing CAN Module Control Register
     C1CTRLbits.REQOP = CONFIG_MODE; // 4 = Configuration mode
@@ -262,7 +158,7 @@ void InitCan(void) {
     C1CTRLbits.CSIDL = 0; // 0 = Continue CAN module op in idle mode
     C1CTRLbits.CANCKS = 0; // 1: Fcan=Fcy 0: Fcan=4Fcy
     C1CFG1bits.SJW = 0; // Synchronized jump width is 1xTq
-    C1CFG1bits.BRP = 1; // Baud rate prescaler = 20 (CAN baud rate of 100kHz
+    C1CFG1bits.BRP = 1; // Baud rate prescaler = 20 (CAN baud rate of 100kHz) BRP = 1 means maximum CAN Bus Baud rate (should be 1mhz)
     C1CFG2bits.SEG2PHTS = 1; // 1=Freely Programmable 0=Maximum of SEG1PH or 3Tq's whichever is greater
     C1CFG2bits.PRSEG = 1; // Propagation Segment = 2Tq
     C1CFG2bits.SEG1PH = 6; // Phase Buffer Segment 1 = 7Tq
@@ -310,49 +206,7 @@ void InitCan(void) {
     while (C1CTRLbits.OPMODE != NORMAL); //Wait for CAN1 mode change from Configuration Mode to Loopback mode
 }
 
-
-void InitInt(void) {
-    INTCON1bits.NSTDIS = 1; // Interrupt nesting is disabled
-    IEC0bits.INT0IE = 0; // Disable external interrupt 0
-    INTCON2bits.ALTIVT = 0; // Default interrupt vector table
-    INTCON2bits.INT0EP = 1; // Detect on 1 = negative edge 0 = positive for interrupt 0
-    IPC0bits.INT0IP = 6; // External interrupt 0 is priority 5
-    IFS0bits.INT0IF = 0; // Clear external interrupt 0 flag
-    IEC0bits.INT0IE = 1; // Enable external interrupt 0
-    return;
-}
-
-void InitAdc(void) {
-    ADPCFG &= ~0x0007; // Sets  PB1 and PB2 as analog pin (clear bits)
-    ADCON1bits.ADON = 0; // A/D converter module off
-    ADCON1bits.ADSIDL = 0; // Continue module operation in Idle mode
-    ADCON1bits.SIMSAM = 0; // Samples multiple channels individually in sequence
-    ADCON1bits.FORM = 0; // Integer (DOUT = 0000 00dd dddd dddd)
-    ADCON1bits.SSRC = 7; // Internal counter ends sampling and starts conversion (auto convert)
-    ADCON1bits.ASAM = 1; // Sampling in a channel begins when the conversion finishes (Auto-sets SAMP bit)
-    //    ADCON1bits.SAMP = 1;        // At least one A/D sample/hold amplifier is sampling
-
-    //    ADCON2bits.VCFG = 3; // Set external Vref+ and Vref- pins as A/D VrefH and VrefL
-    ADCON2bits.VCFG = 7; // Set AVss and AVdd as A/D VrefH and VrefL
-    ADCON2bits.CSCNA = 0;
-    ADCON2bits.BUFM = 0; // Buffer configured as one 16-word buffer ADCBUF(15...0)
-    ADCON2bits.CHPS = 0; // Convert CH0
-    ADCON2bits.SMPI = 0; // Interrupts at the completion of conversion for each sample/convert sequence
-
-    ADCON3bits.ADRC = 0; // Clock derived from system clock
-    ADCON3bits.ADCS = 31; // A/D Conversion clock select = 32*Tcy
-    ADCON3bits.SAMC = 31; // 31*Tad Auto-Sample time
-
-    ADCHSbits.CH0SA = 1; // Channel 0 positive input is AN2
-    ADCHSbits.CH0NA = 0; // Channel 0 negative input is Vref-
-
-    // ADC Interrupt Initialization
-    IFS0bits.ADIF = 0; // Clear timer 1 interrupt flag
-    IEC0bits.ADIE = 1; // Enable timer 1 interrupts
-    IPC2bits.ADIP = 5; // ADC interrupt priority 5 (default 4)
-    return;
-}
-
+//QEI Initialization
 void InitQEI(void) {
     ADPCFG |= 0x0038; // RB3, RB4, RB5 configured to digital pin
     QEICONbits.QEIM = 0; // Disable QEI module
@@ -365,8 +219,8 @@ void InitQEI(void) {
     DFLTCONbits.CEID = 1; // Count error interrupts disabled
     DFLTCONbits.QEOUT = 1; // Digital filters output enabled for QEn pins
     DFLTCONbits.QECK = 2; // 1:4 clock divide for digital filter for QEn
-    // FILTER_DIV = (MIPS*FILTERED_PULSE)/3
-    //  ==> 5MHz*5usec/3 = 3.33 --> 2
+                            // FILTER_DIV = (MIPS*FILTERED_PULSE)/3
+                            //  ==> 5MHz*5usec/3 = 3.33 --> 2
     POSCNT = 30000; // Reset position counter
     MAXCNT = 0xFFFF; // 65,535
     QEICONbits.QEIM = 7; // X4 mode with position counter reset by
@@ -375,6 +229,7 @@ void InitQEI(void) {
     return;
 }
 
+//PWM initialization
 void InitPwm(void) {
     PTCONbits.PTEN = 0; // Disable PWM timerbase
     PTCONbits.PTCKPS = PWM_PRESCALER; // prescaler
@@ -389,6 +244,7 @@ void InitPwm(void) {
     return;
 }
 
+//Uart initialization
 void InitUart() {
     U1MODEbits.UARTEN = 0; // UART is disabled
     U1MODEbits.USIDL = 0; // Continue operation in Idle Mode
@@ -422,6 +278,7 @@ void InitUart() {
 
 }
 
+//Timer 1 initialization (Motor PWM output (Haptic Feedback))
 void InitTmr1(void) {
     TMR1 = 0; // Reset timer counter
     T1CONbits.TON = 0; // Turn off timer 1
@@ -429,13 +286,15 @@ void InitTmr1(void) {
     T1CONbits.TGATE = 0; // Gated timer accumulation disabled
     T1CONbits.TCS = 0; // Use Tcy as source clock
     T1CONbits.TCKPS = 0; // Tcy/1 as input clock
-    PR1 = 5000; // Interrupt period = 10ms (5000 = 500hz)
+    PR1 = 5000;        // (5000 = 500hz)
     IFS0bits.T1IF = 0; // Clear timer 1 interrupt flag
     IEC0bits.T1IE = 1; // Enable timer 1 interrupts
     IPC0bits.T1IP = 7; // Enable timer 1 interrupts
     return;
 }
 
+
+//Timer 2 initialization (CAN bus Transfer)
 void InitTmr2(void)
 {
    TMR2 = 0;                // Reset timer counter
@@ -451,6 +310,23 @@ void InitTmr2(void)
    return;
 }
 
+//Timer 3 initialization (for initialization phase)
+void InitTmr3(void)
+{
+   TMR3 = 0;                // Reset timer counter
+   T3CONbits.TON = 0;       // Turn off timer 2
+   T3CONbits.TSIDL = 0;     // Continue operation during sleep
+   T3CONbits.TGATE = 0;     // Gated timer accumulation disabled
+   T3CONbits.TCS = 0;       // Use Tcy as source clock
+   T3CONbits.TCKPS = 0;     // Tcy/1 as input clock
+   PR3 = 1000;              // Interrupt period = 10ms
+   IFS0bits.T3IF = 0;       // Clear timer 2 interrupt flag
+   IEC0bits.T3IE = 1;       // Enable timer 2 interrupts
+   IPC1bits.T3IP = 7;       // Enable timer 2 interrupts
+   return;
+}
+
+//Delay function
 void msDelay(unsigned int mseconds) //For counting time in ms
 //-----------------------------------------------------------------
 {
@@ -466,6 +342,7 @@ void msDelay(unsigned int mseconds) //For counting time in ms
     return;
 }
 
+//PID initialization
 void InitPid(pid_t *p, float kp, float kd, float ki, float T, unsigned short N, float il, float yl, float dl, float el) {
     p->Kp = kp;
     p->Kd = kd;
@@ -478,31 +355,38 @@ void InitPid(pid_t *p, float kp, float kd, float ki, float T, unsigned short N, 
     p->elast = el;
 }
 
+//PID calcuation function as well motor PWM output
 void CalcPid(pid_t *mypid)
 {
     volatile float pidOutDutyCycle;
-    volatile int target = InData0[0];//(int)targetPos;
+    volatile int target = InData0[1];//(int)targetPos;
     volatile int motorPos = (int)POSCNT;
     volatile float error = 0.0;
 
+    //Calculates error through Targeted position and current motor position (Float)
     error = (float)(target - motorPos);
 
+    //PID Output duty cycle based on error (Float)
     pidOutDutyCycle = (mypid->Kp*error);
 
+    //Motor PWM Saturation
     if (pidOutDutyCycle >= 997.0) pidOutDutyCycle = 997.0;
     if (pidOutDutyCycle <= -997.0) pidOutDutyCycle = -997.0;
 
+    //Motor CW Operation
     if (pidOutDutyCycle < 0.0){
-        PDC1 = (unsigned int)((-0.05)*(pidOutDutyCycle));
-        PDC2  = 0;
-    }
-    else {
         PDC1 = 0;
-        PDC2  = (unsigned int)(0.05)*(pidOutDutyCycle);
+        PDC2  = (unsigned int)((-1.0)*(pidOutDutyCycle));
+    }
+    //Motor CCW Operation
+    else {
+        PDC1 = (unsigned int)(1.0)*(pidOutDutyCycle);
+        PDC2  = 0;
     }
     return;
 }
 
+//Update PID
 void UpdatePid(pid_t *mypid) {
     // Update PD variables
     mypid->ylast = mypid->y;
@@ -511,132 +395,98 @@ void UpdatePid(pid_t *mypid) {
 }
 
 int main() {
-    unsigned int i, j = 0;
-    char txData[UART_TX_LEN] = {'\0'};
-    char rxData[UART_TX_LEN] = {'\0'};
-    InitCan();
-    //    InitInt();
-    //    InitAdc();
+//    char txData[UART_TX_LEN] = {'\0'};
+    //    char rxData[UART_TX_LEN] = {'\0'};
+
+    //ISR initializations
+    //    InitUart();
     InitQEI();
     InitPwm();
-    //    InitUart();
-    InitTmr1();
-    InitTmr2();
+    InitTmr3(); // for pid
 
+    //LED PORT initializations
     TRISRED = 0; // PORTE output
     TRISYLW = 0; // PORTE output
     TRISGRN = 0;
 
-    //INITIALIZE:
+    LEDRED = 0;
+    LEDYLW = 0;
+    LEDGRN = 0;
 
-    // Initialization to offset POSCNT to three turns (12000 counts)
-    POSCNT = 30000; // This prevents under and overflow of the POSCNT register
-    //                ADCBUF0 = 0;
-    //                ADCValue0 = 0;
-    //
-    //                // Enable ADC Module
-    //                ADCON1bits.ADON = 1; // A/D converter module on
-
-                    // Enable PWM Module
-                    PTCONbits.PTEN = 1;
+    // Enable PWM Module
+    PTCONbits.PTEN = 1;
 
     // Initialize PID
-    InitPid(&mypid, PID_KP, PID_KD, PID_KI, PID_TS, PID_N, 0, 0, 0, 0);
+    InitPid(&mypid, PID_KP, PID_KD, PID_KI, PID_TS, PID_N, 0.0, 0.0, 0.0, 0.0);
+
+    //Turn on timer 3 (Motor PWM Calculation for initialization)
+    T3CONbits.TON = 1;
+
+    //Initialization phase move motor back for 7000 counts
+    unsigned int i = 0;
+    for(i = 0; i < 1000; i++){
+        InData0[1] = InData0[1] - 7;
+        msDelay(1);
+        LEDYLW = 1;
+    }
+
+    //turn of CalcPid and all pwm to motors
+    LEDYLW = 0;
+    PDC1 = 0;
+    PDC2 = 0;
+    T3CONbits.TON = 0;
+
+    //reinitialize QEI values
+    POSCNT = 30000; // This prevents under and overflow of the POSCNT register
+    InData0[1] = 30000;
+    msDelay(1);
+
+    //turn HapticFeedback back on as well as initialize CAN bus
+    InitTmr1();
+    InitTmr2();
+    InitCan();
 
     // Enable CAN module
     C1CTRLbits.REQOP = NORMAL;
     while (C1CTRLbits.OPMODE != NORMAL);
 
-    // Turn on timer 1
+    //Turn on timer 1 (Motor PWM Calculation (Haptic Feedback))
     T1CONbits.TON = 1;
-     // Turn on timer 2
+
+    //Turn on timer 2 (CAN bus message transmission)
     T2CONbits.TON = 1;
-   
 
     while (1) {
 
-   
-//            msDelay(2);
-//    if (InData0[3] == 1) {
-//            C1TX0B4 = 2;
-            
-
-
-            
-
-//        }
-
-
-
+        // Uart function
         //        sprintf(txData, "KP: %f Kd: %f Ki: %f\r\n", mypid.Kp, mypid.Kd, mypid.Ki);
         //        for (i = 0; i < UART_TX_LEN; i++) {
         //            U1TXREG = txData[i];
         //            while (!(U1STAbits.TRMT));
         //        }
 
-        //        msDelay(PID_TS);
     } //while
 } // main
 
-//void __attribute__((interrupt, no_auto_psv)) _ADCInterrupt(void) {
-//    IFS0bits.ADIF = 0;
-//    unsigned int k = 0;
-//    ADCValue0 = ADCBUF0;
 
-//      if (adcbufferindex >= INDEXSIZE) {
-//        adcbufferindex = 0;
-//        fullflag = 1;
-//    }
-//    if (adcbufferindex == (INDEXSIZE - 1)){
-//        k = 0;
-//    }
-////    ADCValue0 = ADCBUF0;
-//    //can set requirements to detect PWM before reading ADC
-//    if (ADCBUF0 < 120){
-//        ADCvaluebuffer[adcbufferindex] = ADCBUF0;
-//        if (fullflag == 0) {
-////            ADCvaluebuffer[adcbufferindex] = ADCBUF0;
-//            ADCsum = ADCsum + ADCvaluebuffer[adcbufferindex];
-//            ADCValue0 = ADCsum / (adcbufferindex+1);
-//        }
-//        if(fullflag == 1){
-//            ADCsum = 0;
-//            for (k = 0; k < INDEXSIZE; k++) {
-//                ADCsum = ADCsum + ADCvaluebuffer[k];
-////                ADCValue0 = ADCsum*0.1;
-////                return ADCsum;
-//            }
-//            ADCValue0 = ADCsum/INDEXSIZE;
-//
-//        }
-//        if(ADCValue0 > 120){
-//            ADCValue0 = 110;
-//        }
-//    }
-//
-//        adcbufferindex += 1;
-//}
-
-//void __attribute__((interrupt, no_auto_psv)) _INT0Interrupt(void) {
-//    IFS0bits.INT0IF = 0;
-//}
-
+// Can Bus interrupt
 void __attribute__((interrupt, no_auto_psv)) _C1Interrupt(void) {
     IFS1bits.C1IF = 0; // Clear interrupt flag
-//    C1INTFtest = C1INTF;
+
     if (C1INTFbits.TX0IF) {
         C1INTFbits.TX0IF = 0;
-//        RX0IFtest += 1;
+
     }
 
     // If a message was received sucessfully
     if (C1INTFbits.RX0IF) {
         C1INTFbits.RX0IF = 0;
 
-        InData0[0] = C1RX0B1;
-        InData0[1] = C1RX0B2; //Move the recieve data from Buffers to InData
-        InData0[2] = C1RX0B3;
-        InData0[3] = C1RX0B4;
+        //Move the recieve data from Buffers to InData
+        InData0[0] = C1RX0B1; //POSCNT (Master)
+        InData0[1] = C1RX0B2; //POSCNT (Slave)
+        InData0[2] = C1RX0B3; //ADCValue (Slave) (Currently Not in Use)
+        InData0[3] = C1RX0B4; //Sends Confirmation receive flag for Slave
 
         C1RX0CONbits.RXFUL = 0;
     }
@@ -651,30 +501,33 @@ void __attribute__((interrupt, no_auto_psv)) _C1Interrupt(void) {
 //    IFS0bits.U1RXIF = 0; // Clear U1RX interrupt
 //}
 //
+
+
+//Timer 1 for outputing Haptic Feedback
 void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void)
 {
     IFS0bits.T1IF = 0; // Clear timer 1 interrupt flag
     volatile float error = 0.0;
-////     if (InData0[1] != POSCNT){
-////         LEDGRN = 1;
-////     }
-////     else{
-////         LEDGRN = 0;
-////     }
-    
-//     if(InData0[2] >= 5){
+
+      //Motor PWM calculations (Provides Haptic Feedback (Absolute Position Control))
+      //CalcPid functino glitch only allows one direction movement for motor
+      //Calculates Error (float) and then uses error data to produce PWM
+
+      //Motor moves CW
     if (InData0[1] > POSCNT) {
         error = (float) (InData0[1] - POSCNT);
         PDC1 = (unsigned int) ((1.0)*(error));
         PDC2 = 0;
         LEDGRN = 0;
         LEDRED = 1;
+      //Motor moves CCW
     } else if (InData0[1] < POSCNT) {
         error = (float) (POSCNT - InData0[1]);
         LEDGRN = 1;
         LEDRED = 0;
         PDC1 = 0;
         PDC2 = (unsigned int) (1.0)*(error);
+      //NO PWM output to motor
     } else {
         PDC1 = 0;
         PDC2 = 0;
@@ -682,23 +535,24 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void)
         LEDGRN = 0;
     }
 //            CalcPid(&mypid);
-////                LEDRED = 0;
-//         }
-//
-//        else if(InData0[2] <= 2){
-//          LEDRED = 0;
-//          LEDGRN = 0;
-//          PDC1 = 0;
-//          PDC2 = 0;
-//      }
+
 }
 
+//Timer for Sending CAN bus data
 void __attribute__((interrupt, no_auto_psv)) _T2Interrupt(void)
 {
     IFS0bits.T2IF = 0; // Clear timer 1 interrupt flag
-    C1TX0B1 = POSCNT;
-    C1TX0B4 = 1;
+    C1TX0B1 = POSCNT; // Send Master position Data
+    C1TX0B4 = 1; // PIC ID for UART (1 = Master, 2 = Slave)
     C1TX0CONbits.TXREQ = 1;
     while (C1TX0CONbits.TXREQ != 0);
+
+}
+
+//Timer 3 for initialization phase
+void __attribute__((interrupt, no_auto_psv)) _T3Interrupt(void)
+{
+    IFS0bits.T3IF = 0; // Clear timer 1 interrupt flag
+    CalcPid(&mypid);
 
 }
