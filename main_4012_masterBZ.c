@@ -57,7 +57,7 @@
 #define PWM_COUNTS_PERIOD   (FCY/PWM_FREQUENCY)-1
 
 // Define PWM PID controller constants
-#define PID_PWM_FREQUENCY       16000.0
+#define PID_PWM_FREQUENCY   16000.0
 #define PID_FOSC            20000000.0
 #define PID_FCY             PID_FOSC/4.0
 #define PID_PWM_COUNTS_PERIOD   (FCY/PWM_FREQUENCY)-1.0
@@ -74,81 +74,11 @@ typedef struct {
 } pid_t;
 pid_t mypid;
 
-
 // Misc. variables
 
 //InData0 initialization (InData0[0] = POSCNT(Master), InData0[1] = POSCNT(Slave))
 unsigned int InData0[4] = {0, 30000, 0, 0};  
 unsigned int targetPos = 30000; //Motor initial Target position
-
-/////////////////////////////////////////////////////////////
-/////       CAN BUS FILTER TESTING (DOESNT WORK)       //////
-/////////////////////////////////////////////////////////////
-
-//void InitCan(void) {
-//    // Initializing CAN Module Control Register
-//    C1CTRLbits.REQOP = CONFIG_MODE; // 4 = Configuration mode
-//
-//    C1CTRLbits.CANCAP = 1; // Enable CAN capture
-//    C1CTRLbits.CSIDL = 0; // 0 = Continue CAN module op in idle mode
-//    C1CTRLbits.CANCKS = 0; // 1: Fcan=Fcy 0: Fcan=4Fcy
-//
-//    C1CFG1bits.SJW = 0; // Synchronized jump width is 1xTq
-//    C1CFG1bits.BRP = 4; // Baud rate prescaler = 20 (CAN baud rate of 125kHz
-//
-//    C1CFG2bits.SEG2PHTS = 1; // 1=Freely Programmable 0=Maximum of SEG1PH or 3Tq's whichever is greater
-//    C1CFG2bits.PRSEG = 1; // Propagation Segment = 2Tq
-//    C1CFG2bits.SEG1PH = 6; // Phase Buffer Segment 1 = 7Tq
-//    C1CFG2bits.SEG2PH = 5; // Phase Buffer Segment 2 = 6Tq
-//    C1CFG2bits.SAM = 1; // 1=Bus line sampled 3 times 0=Bus line sampled once
-//
-//    // Initializing CAN interrupt
-//    C1INTF = 0; // Reset all CAN interrupts
-//    IFS1bits.C1IF = 0; // Reset Interrupt flag status register
-//    C1INTE = 0x00FF; // Enable all CAN interrupt sources
-////    IPC6bits.C1IP = 6; // CAN 1 Module interrupt is priority 6
-//    IEC1bits.C1IE = 1; // Enable CAN1 Interrupt
-//
-//    /*---------------------------------------------------------
-//     *  CONFIGURE RECEIVER REGISTERS, FILTERS AND MASKS
-//     *---------------------------------------------------------*/
-//
-//    // Configure CAN Module Receive Buffer Register
-//    C1RXF0SIDbits.EXIDE = 0; //turn of extended bit
-//    C1RX0CONbits.DBEN = 0; // Buffer 0 does not overflow in buffer 1
-//    C1RX0CONbits.FILHIT = 0; // Buffer 0 = Acceptance filter 0
-////    C1RX1CONbits.FILHIT = 0; // Buffer 1 = Acceptance filter 2
-//
-//    // Initializing Acceptance Mask Register
-//    C1RXM0SID = 0x1FFD; // SID = 00000011111
-////    C1RXM1SID = 0x0000; // SID = 00000000000
-//
-//    // Initializing Message Acceptance filter
-//    C1RXF0SID = 0x0020; //
-//    C1RXF1SID = 0x0000; //
-//    C1RXF2SID = 0x0000; //
-//    C1RXF3SID = 0x0000; //
-//    C1RXF4SID = 0x0000; // SID = 00000000000
-//    C1RXF5SID = 0x0000; // SID = 00000000000
-//
-//    /*---------------------------------------------------------
-//     *  CONFIGURE RECEIVER REGISTERS, FILTERS AND MASKS
-//     *---------------------------------------------------------*/
-//
-//    // Configure CAN Module Transmit Buffer Register
-//    C1TX0CONbits.TXPRI = 1; // 1 = High message priority
-////    C1TX2CONbits.TXPRI = 2; // 2 = High intermediate message priority
-//    C1TX0SIDbits.TXIDE = 0;//turn off extended bit
-//
-//    // Initializing Transmit SID
-//     //          12345678901
-//    C1TX0SID = 0B10101110001; // SID = 01010101010
-////    C1TX1SID = 0X0000; // SID = 10101010101
-//    C1TX0DLCbits.DLC = 8; // Data length is 8bytes
-////    C1TX1DLCbits.DLC = 8; // Data length is 8bytes
-//
-//}
-
 
 //CAN BUS initialization
 void InitCan(void) {
@@ -195,13 +125,6 @@ void InitCan(void) {
     C1TX0SID = 0X50A8;
     C1TX0DLCbits.DLC = 8; // Data length is 8bytes
 
-    // Data Field 1,Data Field 2, Data Field 3, Data Field 4 // 8 bytes selected by DLC
-
-//    C1TX0B1 = OutData0[0];
-//    C1TX0B2 = OutData0[1];
-//    C1TX0B3 = OutData0[2];
-//    C1TX0B4 = OutData0[3];
-
     C1CTRLbits.REQOP = NORMAL;
     while (C1CTRLbits.OPMODE != NORMAL); //Wait for CAN1 mode change from Configuration Mode to Loopback mode
 }
@@ -224,8 +147,8 @@ void InitQEI(void) {
     POSCNT = 30000; // Reset position counter
     MAXCNT = 0xFFFF; // 65,535
     QEICONbits.QEIM = 7; // X4 mode with position counter reset by
-    // 6 - index pulse
-    // 7 - match (MAXCNT)
+                         // 6 - index pulse
+                         // 7 - match (MAXCNT)
     return;
 }
 
@@ -258,10 +181,6 @@ void InitUart() {
     U1STAbits.URXISEL = 0; // Interrupt when word moves from REG to RX buffer
     U1STAbits.ADDEN = 0; // Address detect mode disabled
 
-    //    U1BRG = 11;                 // p.507 of family reference
-    //                                // 9600 baud rate for FOSC = 7.37MHz
-    //    U1BRG = (unsigned int) UART_BRG;           // p.507 of family reference
-    //                                // 115000 baud rate for FOSC = 20MHz
     U1BRG = 7; // p.507 of family reference
     // 38400 baud rate for FOSC = 20MHz
 
@@ -541,7 +460,7 @@ void __attribute__((interrupt, no_auto_psv)) _T1Interrupt(void)
 //Timer for Sending CAN bus data
 void __attribute__((interrupt, no_auto_psv)) _T2Interrupt(void)
 {
-    IFS0bits.T2IF = 0; // Clear timer 1 interrupt flag
+    IFS0bits.T2IF = 0; // Clear timer 2 interrupt flag
     C1TX0B1 = POSCNT; // Send Master position Data
     C1TX0B4 = 1; // PIC ID for UART (1 = Master, 2 = Slave)
     C1TX0CONbits.TXREQ = 1;
@@ -552,7 +471,7 @@ void __attribute__((interrupt, no_auto_psv)) _T2Interrupt(void)
 //Timer 3 for initialization phase
 void __attribute__((interrupt, no_auto_psv)) _T3Interrupt(void)
 {
-    IFS0bits.T3IF = 0; // Clear timer 1 interrupt flag
+    IFS0bits.T3IF = 0; // Clear timer 3 interrupt flag
     CalcPid(&mypid);
 
 }
